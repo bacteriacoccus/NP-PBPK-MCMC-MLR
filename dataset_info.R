@@ -8,7 +8,7 @@ ls_np_name = c("Au: Study1_12nm_0.85mg/kg","Au: Study1_23nm_0.85mg/kg","Au: Stud
 
 read_observation_data <- function(np_name) {
   if (np_name == "Au: Study1_12nm_0.85mg/kg") {
-    Obs.df <- read.csv(file = "dataset/tk/mouse/gold/R_input_mouse_Study1_12nm.csv")
+    Obs.df <- read.csv(file = "dataset/tk/mouse/gold/R_input_mouse_study1_12nm.csv")
     Obs.df <- Obs.df[1:7,]
     PDOSE <- Obs.df$Dose.mg.kg.[1]
     pathway <- Obs.df$Input.pathway[1]
@@ -16,7 +16,7 @@ read_observation_data <- function(np_name) {
     folder <- 'plots/Au/S1_12nm_nsc_GI/'
   } 
   else if (np_name == "Au: Study1_23nm_0.85mg/kg") {
-    Obs.df <- read.csv(file = "dataset/tk/mouse/gold/R_input_mouse_Study1_23nm.csv")
+    Obs.df <- read.csv(file = "dataset/tk/mouse/gold/R_input_mouse_study1_23nm.csv")
     Obs.df <- Obs.df[1:7,]
     PDOSE <- Obs.df$Dose.mg.kg.[1]
     pathway <- Obs.df$Input.pathway[1]
