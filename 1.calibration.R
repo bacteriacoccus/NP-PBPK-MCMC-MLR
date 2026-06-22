@@ -331,7 +331,7 @@ rmse_plot = ggplot(rmse_organ, aes(x = Fold, y = RMSE, color = Organ)) +
    strip.text = element_text(size=14),
     panel.grid.major = element_blank(),  # Remove major grid lines
     panel.grid.minor = element_blank(),  # Remove minor grid lines
-    panel.border = element_rect(color = "black", fill = NA, size = 1)  # Add border around the plot
+    panel.border = element_rect(color = "black", fill = NA, linewidth = 1)  # Add border around the plot
   )
 rmse_plot
 # Save the plot as a file
