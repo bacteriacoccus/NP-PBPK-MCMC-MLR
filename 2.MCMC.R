@@ -36,7 +36,7 @@ ls_np_name = c("Au: Study1_12nm_0.85mg/kg","Au: Study1_23nm_0.85mg/kg","Au: Stud
                "TiO2: Study1_385nm_10mg/kg","TiO2: Study2_220nm_60mg/kg",
                "FeO: Study1_29nm_5mg/kg","FeO: Study2_41nm_4mg/kg")
 
-
+np.name = ls_np_name[1]
 Obs.df = read_observation_data(np.name)$Obs.df
 folder = read_observation_data(np.name)$folder
 pathway = read_observation_data(np.name)$pathway
@@ -265,7 +265,7 @@ Prior <- function(pars) {
   log.pri.sig2   = log (prior_sig2)
   
   # maximum likelihood estimation (MLE): negative log-likelihood function, (-2 times sum of log-likelihoods)
-  MLE =  -2*sum(log.pri.pars, log.pri.sig , log.pri.pars.i,log.pri.sig2)  
+  MLE =  -2*sum(c(log.pri.pars, log.pri.sig , log.pri.pars.i,log.pri.sig2))  
   
   return(MLE)
 }
@@ -273,10 +273,18 @@ Prior <- function(pars) {
 
 
 #################### 5. MCMC simulation with parallel computing ############################
-detectCores()                                ## check the cores
-cl<- makeCluster(detectCores())              ## use all cores in our system     
-registerDoParallel(cl)                       ## registers a cluster of all the cores on our system
 
+# Safely detect cluster-allocated cores (will read the 48 cores from Slurm)
+allocated_cores <- as.numeric(Sys.getenv("SLURM_CPUS_PER_TASK"))
+if (is.na(allocated_cores)) allocated_cores <- 4 
+
+cl <- makeCluster(allocated_cores)              
+registerDoParallel(cl)
+                               
+#detectCores()                                ## check the cores
+#cl<- makeCluster(detectCores())              ## use all cores in our system     
+#registerDoParallel(cl)                       ## registers a cluster of all the cores on our system
+#--------------------
 # start time
 tstr<-Sys.time()
 
