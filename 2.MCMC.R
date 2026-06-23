@@ -289,14 +289,14 @@ registerDoParallel(cl)
 tstr<-Sys.time()
 
 # TEMPORARY TEST SETTINGS 
-niter        = 1000
-burninlength = 500
-outputlength = 500 
+#niter        = 1000
+#burninlength = 500
+#outputlength = 500 
 
 
-# niter = 600000
-# burninlength  = 300000
-# outputlength  = 300000
+ niter = 600000
+ burninlength  = 300000
+ outputlength  = 300000
 
 
 # parallel
@@ -348,8 +348,8 @@ if (!file.exists(paste0(folder,"MCMC/"))) {
 
 # output the MCMC results
 
-#write.csv(MC.mouse.1,file=paste0(folder,"MCMC/mouse.chain1.csv"))
-#saveRDS(MCMC,file =paste0(folder,'MCMC/mouse.MCMC.rds'))
-#saveRDS(combinedchains,file=paste0(folder,'MCMC/mouse.MCMC.comb.rds'))
+write.csv(MC.mouse.1,file=paste0(folder,"MCMC/mouse.chain1.csv"))
+saveRDS(MCMC,file =paste0(folder,'MCMC/mouse.MCMC.rds'))
+saveRDS(combinedchains,file=paste0(folder,'MCMC/mouse.MCMC.comb.rds'))
 
 
