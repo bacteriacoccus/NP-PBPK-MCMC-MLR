@@ -257,7 +257,7 @@ for (np.name in ls_np_name) {
     MC_plots[[name]] <- MC_plot
   }
   
-  #saveRDS(MC_plots, paste0(folder,"MCMC/combined_MCMC_mean_sd_data.rds"))
+  saveRDS(MC_plots, paste0(folder,"MCMC/combined_MCMC_mean_sd_data.rds"))
   MC_plots = readRDS(paste0(folder,"MCMC/combined_MCMC_mean_sd_data.rds"))
   
   
@@ -274,7 +274,7 @@ for (np.name in ls_np_name) {
   
   #p.r.S
   
-  #ggsave(paste0(folder,"MCMC/MCMC_fit_spleen.png"),width = 10, height = 8)
+  ggsave(paste0(folder,"MCMC/MCMC_fit_spleen.png"),width = 10, height = 8)
   required_columns <- c("CK", "CL", "Clung", "CS")
   
   # Check if all required columns are present in the dataframe
@@ -351,8 +351,8 @@ for (np.name in ls_np_name) {
  
   ggsave(paste0(folder,"mc_sens/prob_chains.png"),plot_prob_chains, width = 10, height = 6)
   
-  #write.csv(R[1],paste0(folder,"mc_sens/r.csv"))
-  #write.csv(R[2],paste0(folder,"mc_sens/r_summary.csv"))
+  write.csv(R[1],paste0(folder,"mc_sens/r.csv"))
+  write.csv(R[2],paste0(folder,"mc_sens/r_summary.csv"))
 }
 
 
@@ -371,5 +371,5 @@ for (np.name in ls_np_name) {
                                  mean_Upper_ci = colMeans(R[1]$psrf, na.rm = TRUE)[2]))
 }
 folder_tot = "plots/"
-#write.csv(R_df, file= paste0(folder_tot,"R_hat_tot.csv"),row.names = FALSE)
+write.csv(R_df, file= paste0(folder_tot,"R_hat_tot.csv"),row.names = FALSE)
 
