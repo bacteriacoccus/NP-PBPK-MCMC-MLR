@@ -18,6 +18,7 @@ library(ggplot2)
 library(FME) 
 library(dplyr)  
 library(gridExtra)
+library(grid)
 library(mrgsolve)    # Needed for Loading mrgsolve code into r via mcode from the 'mrgsolve' pckage
 library(magrittr)    # The pipe, %>% , comes from the magrittr package by Stefan Milton Bache
 source("helper_functions.R")
