@@ -87,8 +87,8 @@ for (np.name in ls_np_name) {
     scale_fill_manual(values = "gray")
 
   # Save the plot
-  #ggsave(paste0(folder,"mc_sens/pri_density_distribution_plot.png"), pri_den_plot,
-  #       width = 30, height = 18, units = "cm")
+  ggsave(paste0(folder,"mc_sens/pri_density_distribution_plot.png"), pri_den_plot,
+         width = 30, height = 18, units = "cm")
   
   
 
@@ -187,21 +187,21 @@ for (np.name in ls_np_name) {
 
   
   # Save the plot
-  #ggsave(paste0(folder,"mc_sens/post_density_distribution_plot.png"), post_den_plot, 
-  #       width = 30, height = 18, units = "cm")
+  ggsave(paste0(folder,"mc_sens/post_density_distribution_plot.png"), post_den_plot, 
+         width = 30, height = 18, units = "cm")
   
-  #ggsave(paste0(folder,"mc_sens/prior_post_density_distribution_plot.png"), prior_post_den_plot, 
-  #       width = 30, height = 18, units = "cm")
+  ggsave(paste0(folder,"mc_sens/prior_post_density_distribution_plot.png"), prior_post_den_plot, 
+         width = 30, height = 18, units = "cm")
   
   
   # Save to CSV
-  #write.csv(post_mean_sd_df, file = paste0(folder,"mc_sens/post_paras_stats.csv"), row.names = FALSE)
+  write.csv(post_mean_sd_df, file = paste0(folder,"mc_sens/post_paras_stats.csv"), row.names = FALSE)
   
   #-------- Save the posterior parameters (95% CI)----------
   MC.mouse.1 = as.mcmc (Mouse.MCMC_chain1$pars)
   quan.mouse = exp(summary(MC.mouse.1)$quantiles)  
   
-  #write.csv(quan.mouse,file=paste0(folder,"mc_sens/mouse.summary_pos.csv"))
+  write.csv(quan.mouse,file=paste0(folder,"mc_sens/mouse.summary_pos.csv"))
   
   #-----------------------------2. get range plots results -------------
   print("starting prediction results plotting...")
@@ -311,7 +311,7 @@ for (np.name in ls_np_name) {
   }
   
   # Save the combined plot
-  #ggsave(paste0(folder, "MCMC/mcmc_fit_combined.png"), combined_MCMC_plot, width = 14, height = 10)
+  ggsave(paste0(folder, "MCMC/mcmc_fit_combined.png"), combined_MCMC_plot, width = 14, height = 10)
   
   
   
@@ -339,7 +339,7 @@ for (np.name in ls_np_name) {
     facet_args = list(nrow = 5)) +
     #ggplot2::scale_color_brewer() +
     theme(axis.text.x = element_text(angle = 30, hjust = 1))  # Adjust angle of x-axis labels
-  #ggsave(paste0(folder,"mc_sens/trace_plot.png"),trace_plot, width = 10, height = 6)
+  ggsave(paste0(folder,"mc_sens/trace_plot.png"),trace_plot, width = 10, height = 6)
   
   # todo probabilistic distribution of this difference with Fig3 
   plot_prob_chains <- mcmc_dens_overlay(
@@ -349,7 +349,7 @@ for (np.name in ls_np_name) {
     #ggplot2::scale_color_brewer() +
     theme(axis.text.x = element_text(angle = 30))
  
-  #ggsave(paste0(folder,"mc_sens/prob_chains.png"),plot_prob_chains, width = 10, height = 6)
+  ggsave(paste0(folder,"mc_sens/prob_chains.png"),plot_prob_chains, width = 10, height = 6)
   
   #write.csv(R[1],paste0(folder,"mc_sens/r.csv"))
   #write.csv(R[2],paste0(folder,"mc_sens/r_summary.csv"))
