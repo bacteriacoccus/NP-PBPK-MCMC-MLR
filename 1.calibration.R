@@ -59,6 +59,16 @@ folder = read_observation_data(np.name)$folder
 pathway = read_observation_data(np.name)$pathway
 PDOSE = read_observation_data(np.name)$PDOSE
 
+
+# Pre-build all target directory trees cleanly before running calculations
+required_subdirs <- c("mod_fit/", "MCMC/", "mc_sens/", "init_sens_v2/", "mcmc_check/")
+for (subdir in required_subdirs) {
+  target_path <- paste0(folder, subdir)
+  if (!file.exists(target_path)) {
+    dir.create(target_path, recursive = TRUE)
+  }
+}
+
 #--------------------- Build mrgsolve-based PBPK Model-------
 mod <- mcode ("mouse_PBPK", mousePBPK.code)
 
@@ -73,46 +83,7 @@ if (np.name == "FeO: Study2_41nm_4mg/kg") {
 } else {
   tstep <- min(1, min(Obs.df$Time))
 }
-
-
-#-----------iv------
-pred.mouse.iv <- function(pars) {
-  
-  ## Get out of log domain
-  pars %<>% lapply(exp) # todo: important to have because we cannot have nagetive kinetic value
-  
-  ## Define the exposure scenario
-  
-  BW           = 0.02                              ## kg, body weight
-  tinterval    = 1                                 ## hr, Time interval
-  TDoses       = 1                                 ## Dose times, only one dose
-  #PDOSE        = 0.85                              ## mg/kg-day, Single dose
-  DOSE         = PDOSE*BW                          ## mg, amount of iv dose
-  ex.iv<- ev(ID=1, amt= DOSE,                  ## Set up the exposure events
-             ii=tinterval, addl=TDoses-1, 
-             cmt="MBV", replicate = FALSE) 
-  
-  ## Set up the exposure time
-  tsamp=tgrid(0,max(Obs.df$Time),tstep)     ## Simulation time 24*7 hours (180 days)
-  
-  ## calculate the deposition volume
-  out <- 
-    mod %>% 
-    param(pars) %>%
-    ##Req(Liver,M_tot,MBV)%>%d
-    update(atol=1e-50,maxsteps = 500000000) %>%
-    mrgsim_d(data = ex.iv, tgrid=tsamp)
-  
-  ## save the calculated into data frame
-  out <- data.frame(Time=out$time, 
-                    CL=out$Liver_t,
-                    CS = out$Spleen_t,
-                    CK = out$Kidney_t,
-                    Clung = out$Lung_t)
-  
-  return(out)
-}
-
+#----------------------------------------------------------------------------------------------------------------
 #-----------oral----
 pred.mouse.oral <- function(pars) {
   
@@ -120,11 +91,9 @@ pred.mouse.oral <- function(pars) {
   pars %<>% lapply(exp)
   
   ## Define the exposure scenario
-  
   BW           = 0.02                              ## kg, body weight
   tinterval    = 1                                 ## hr, Time interval
   TDoses       = 1                                 ## Dose times, only one dose
-  #PDOSE        = 0.85                              ## mg/kg-day, Single dose
   DOSE         = PDOSE*BW                          ## mg, amount of iv dose
   ex.iv<- ev(ID=1, amt= DOSE,                  ## Set up the exposure events
              ii=tinterval, addl=TDoses-1, 
@@ -133,13 +102,21 @@ pred.mouse.oral <- function(pars) {
   ## Set up the exposure time
   tsamp=tgrid(0,max(Obs.df$Time),tstep)     ## Simulation time 24*7 hours (180 days)
   
-  ## calculate the deposition volume
-  out <- 
+  ## calculate the deposition volume with solver crash safeguard
+  out <- tryCatch({
     mod %>% 
-    param(pars) %>%
-    ##Req(Liver,M_tot,MBV)%>%d
-    update(atol=1e-50,maxsteps = 500000000) %>%
-    mrgsim_d(data = ex.iv, tgrid=tsamp)
+      param(pars) %>%
+      update(atol=1e-50, maxsteps = 500000000) %>%
+      mrgsim_d(data = ex.iv, tgrid=tsamp)
+  }, error = function(e) {
+    return(NULL) # Return NULL if lsoda fails on stiff ODE combinations
+  })
+  
+  ## If the solver crashed, return an empty data frame with NA or dummy data
+  ## This allows modCost/optim to penalize it heavily rather than terminating execution
+  if (is.null(out)) {
+    return(data.frame(Time = tsamp$start, CL = 1e10, CK = 1e10, CS = 1e10, Clung = 1e10))
+  }
   
   ## save the calculated into data frame
   out <- data.frame(Time=out$time, 
@@ -151,18 +128,136 @@ pred.mouse.oral <- function(pars) {
   return(out)
 }
 
-if (pathway == "intraperitoneal injection") {
-  pred.mouse <- pred.mouse.oral
-} else if (pathway == "intravenous injection") {
-  pred.mouse <- pred.mouse.iv
+#-----------iv------
+pred.mouse.iv <- function(pars) {
+  
+  ## Get out of log domain
+  pars %<>% lapply(exp) # todo: important to have because we cannot have nagetive kinetic value
+  
+  ## Define the exposure scenario
+  BW           = 0.02                              ## kg, body weight
+  tinterval    = 1                                 ## hr, Time interval
+  TDoses       = 1                                 ## Dose times, only one dose
+  DOSE         = PDOSE*BW                          ## mg, amount of iv dose
+  ex.iv<- ev(ID=1, amt= DOSE,                  ## Set up the exposure events
+             ii=tinterval, addl=TDoses-1, 
+             cmt="MBV", replicate = FALSE) 
+  
+  ## Set up the exposure time
+  tsamp=tgrid(0,max(Obs.df$Time),tstep)     ## Simulation time 24*7 hours (180 days)
+  
+  ## calculate the deposition volume with solver crash safeguard
+  out <- tryCatch({
+    mod %>% 
+      param(pars) %>%
+      update(atol=1e-50, maxsteps = 500000000) %>%
+      mrgsim_d(data = ex.iv, tgrid=tsamp)
+  }, error = function(e) {
+    return(NULL) # Return NULL if lsoda fails on stiff ODE combinations
+  })
+  
+  ## If the solver crashed, return an empty data frame with NA or dummy data
+  if (is.null(out)) {
+    return(data.frame(Time = tsamp$start, CL = 1e10, CS = 1e10, CK = 1e10, Clung = 1e10))
+  }
+  
+  ## save the calculated into data frame
+  out <- data.frame(Time=out$time, 
+                    CL=out$Liver_t,
+                    CS = out$Spleen_t,
+                    CK = out$Kidney_t,
+                    Clung = out$Lung_t)
+  
+  return(out)
 }
+# #-----------iv------
+# pred.mouse.iv <- function(pars) {
+  
+#   ## Get out of log domain
+#   pars %<>% lapply(exp) # todo: important to have because we cannot have nagetive kinetic value
+  
+#   ## Define the exposure scenario
+  
+#   BW           = 0.02                              ## kg, body weight
+#   tinterval    = 1                                 ## hr, Time interval
+#   TDoses       = 1                                 ## Dose times, only one dose
+#   #PDOSE        = 0.85                              ## mg/kg-day, Single dose
+#   DOSE         = PDOSE*BW                          ## mg, amount of iv dose
+#   ex.iv<- ev(ID=1, amt= DOSE,                  ## Set up the exposure events
+#              ii=tinterval, addl=TDoses-1, 
+#              cmt="MBV", replicate = FALSE) 
+  
+#   ## Set up the exposure time
+#   tsamp=tgrid(0,max(Obs.df$Time),tstep)     ## Simulation time 24*7 hours (180 days)
+  
+#   ## calculate the deposition volume
+#   out <- 
+#     mod %>% 
+#     param(pars) %>%
+#     ##Req(Liver,M_tot,MBV)%>%d
+#     update(atol=1e-50,maxsteps = 500000000) %>%
+#     mrgsim_d(data = ex.iv, tgrid=tsamp)
+  
+#   ## save the calculated into data frame
+#   out <- data.frame(Time=out$time, 
+#                     CL=out$Liver_t,
+#                     CS = out$Spleen_t,
+#                     CK = out$Kidney_t,
+#                     Clung = out$Lung_t)
+  
+#   return(out)
+# }
+
+# #-----------oral----
+# #pred.mouse.oral <- function(pars) {
+  
+#   ## Get out of log domain
+#  # pars %<>% lapply(exp)
+  
+#   ## Define the exposure scenario
+  
+#   #BW           = 0.02                              ## kg, body weight
+#   #tinterval    = 1                                 ## hr, Time interval
+#   #TDoses       = 1                                 ## Dose times, only one dose
+#   #PDOSE        = 0.85                              ## mg/kg-day, Single dose
+#   #DOSE         = PDOSE*BW                          ## mg, amount of iv dose
+#   #ex.iv<- ev(ID=1, amt= DOSE,                  ## Set up the exposure events
+#    #          ii=tinterval, addl=TDoses-1, 
+#     #         cmt="M_GI_lumen", replicate = FALSE) 
+  
+#   ## Set up the exposure time
+#   #tsamp=tgrid(0,max(Obs.df$Time),tstep)     ## Simulation time 24*7 hours (180 days)
+  
+#   ## calculate the deposition volume
+#   #out <- 
+#    # mod %>% 
+#     #param(pars) %>%
+#     ##Req(Liver,M_tot,MBV)%>%d
+#     #update(atol=1e-50,maxsteps = 500000000) %>%
+#     #mrgsim_d(data = ex.iv, tgrid=tsamp)
+  
+#   ## save the calculated into data frame
+#   #out <- data.frame(Time=out$time, 
+#    #                 CL=out$Liver_t,
+#     #                CK = out$Kidney_t,
+#      #               CS = out$Spleen_t,
+#                     Clung = out$Lung_t)
+  
+#   return(out)
+# }
+
+# if (pathway == "intraperitoneal injection") {
+#   pred.mouse <- pred.mouse.oral
+# } else if (pathway == "intravenous injection") {
+#   pred.mouse <- pred.mouse.iv
+# }
 
 
-MCcost<-function (pars, obs){
-  out<- pred.mouse(pars)
-  cost<- modCost(model=out,obs=obs,weight='mean',x="Time")
-  return(cost)
-}
+# MCcost<-function (pars, obs){
+#   out<- pred.mouse(pars)
+#   cost<- modCost(model=out,obs=obs,weight='mean',x="Time")
+#   return(cost)
+# }
 
 #-------------- 1. choose the sensitive parameters for fitting -------------
 # #--------------draw the sensitive line one by one--------
