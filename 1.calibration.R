@@ -260,6 +260,13 @@ plot_kidney.a0  <- create_plot(Fitted_output.A0, y = "CK", organ = "Kidney", tit
 plot_lung.a0    <- create_plot(Fitted_output.A0, y = "Clung", organ = "Lung", title = "Lung")
 plot_spleen.a0  <- create_plot(Fitted_output.A0, y = "CS", organ = "Spleen", title = "Spleen")
 
+# ==================== FIX ADDED HERE ====================
+# Ensure the mod_fit directory exists BEFORE running ggsave
+if (!file.exists(paste0(folder, "mod_fit/"))) {
+  dir.create(paste0(folder, "mod_fit/"), recursive = TRUE)
+}
+# ========================================================
+
 # Arrange the plots together
 combined_mod_fit_plot.a0 <- grid.arrange(plot_liver.a0, plot_lung.a0, plot_spleen.a0, 
                                          ncol = 2, nrow = 2,
