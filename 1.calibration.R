@@ -42,7 +42,7 @@ ls_np_name = c("Au: Study1_12nm_0.85mg/kg","Au: Study1_23nm_0.85mg/kg","Au: Stud
 
 # Instead of a hardcoded index, read the Slurm array ID
 # fallback to 3 if running locally
-current_index <- as.numeric(Sys.getenv("SLURM_ARRAY_TASK_ID", unset = "3")) 
+current_index <- as.numeric(Sys.getenv("RUN_INDEX", unset = "3")) 
 
 np.name <- ls_np_name[current_index]
 #np.name= ls_np_name[2]
