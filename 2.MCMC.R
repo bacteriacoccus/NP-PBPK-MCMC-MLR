@@ -36,7 +36,14 @@ ls_np_name = c("Au: Study1_12nm_0.85mg/kg","Au: Study1_23nm_0.85mg/kg","Au: Stud
                "TiO2: Study1_385nm_10mg/kg","TiO2: Study2_220nm_60mg/kg",
                "FeO: Study1_29nm_5mg/kg","FeO: Study2_41nm_4mg/kg")
 
-np.name = ls_np_name[2]
+
+# Instead of a hardcoded index, read the Slurm array ID
+# fallback to 3 if running locally
+current_index <- as.numeric(Sys.getenv("SLURM_ARRAY_TASK_ID", unset = "3")) 
+
+np.name <- ls_np_name[current_index]
+
+#np.name = ls_np_name[2]
 Obs.df = read_observation_data(np.name)$Obs.df
 folder = read_observation_data(np.name)$folder
 pathway = read_observation_data(np.name)$pathway
