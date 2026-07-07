@@ -180,29 +180,72 @@ saveRDS(combined_prior_density_df, file =paste0(folder,"mc_sens/pri_paras_densit
 
 
 #--------------Maximum likelihood estimation (MLE) function for MCMC----
-mcmc.fun <- function (pars){
+#mcmc.fun <- function (pars){
   
-  out <- pred.mouse(pars[-which_sig])
+ # out <- pred.mouse(pars[-which_sig])
 
-  out = out[which(out$Time %in% Obs.df$Time),]
+  #out = out[which(out$Time %in% Obs.df$Time),]
   # making sure the predicted value and observed value matching with each other as
   # the time step in predicting function might not be small enough to cover the time step in the 
   # observed time step
-  Obs.df = Obs.df[which(Obs.df$Time %in% out$Time),] 
-  col_order <- names(Obs.df)
-  out = out[col_order]
+  #Obs.df = Obs.df[which(Obs.df$Time %in% out$Time),] 
+  #col_order <- names(Obs.df)
+  #out = out[col_order]
   
   ## log-transformed prediction
+  #cols_to_log <- setdiff(names(out), "Time")
+  #out[cols_to_log] <- lapply(out[cols_to_log], function(x) ifelse(x != 0, log(x), NA))
+  #log.yhat <- unname(unlist(out[cols_to_log]))
+  
+  
+  ## log-transformed experimental data
+  #Obs.df[cols_to_log] <- lapply(Obs.df[cols_to_log], function(x) ifelse(x != 0, log(x), NA))
+  #log.y <- unname(unlist(Obs.df[cols_to_log]))
+  
+
+  #non_nan_indices <- which(!is.na(log.y))
+  #log.yhat        <- log.yhat[non_nan_indices]
+  #log.y           <- log.y[non_nan_indices]
+  
+  #sig2            <- as.numeric((exp(pars[which_sig][1])))
+  
+  #log_likelihood  <- -2*sum((dnorm (log.y,
+   #                                 mean = log.yhat,
+    #                                sd   = sqrt(sig2), 
+     #                               log=TRUE)))
+  
+  #return(log_likelihood)
+  
+#}
+#--------------Maximum Likelihood Estimation Function (with tryCatch Boundary Protection)----
+mcmc.fun <- function (pars){
+  
+  # Protect the ODE solver from stiff/death-zone combinations
+  out <- tryCatch({
+    # Increase maxsteps and slightly tighten tolerances to minimize lsoda crashing
+    mrgsim(mod, param = pars[-which_sig], maxsteps = 80000, atol = 1e-8, rtol = 1e-6) 
+    pred.mouse(pars[-which_sig])
+  }, error = function(e) {
+    return(NULL) 
+  })
+  
+  # If the simulation crashed or returned bad data, return a massive negative penalty value
+  if (is.null(out) || !is.data.frame(out) || nrow(out) == 0) {
+    return(999999) # modMCMC minimizes this function output; return a high value as a penalty
+  }
+
+  out = out[which(out$Time %in% Obs.df$Time),]
+  Obs.df_local = Obs.df[which(Obs.df$Time %in% out$Time),] 
+  col_order <- names(Obs.df_local)
+  out = out[col_order]
+  
   cols_to_log <- setdiff(names(out), "Time")
   out[cols_to_log] <- lapply(out[cols_to_log], function(x) ifelse(x != 0, log(x), NA))
   log.yhat <- unname(unlist(out[cols_to_log]))
   
+  Obs.df_local[cols_to_log] <- lapply(Obs.df_local[cols_to_log], function(x) ifelse(x != 0, log(x), NA))
+  log.y <- unname(unlist(Obs.df_local[cols_to_log]))
   
-  ## log-transformed experimental data
-  Obs.df[cols_to_log] <- lapply(Obs.df[cols_to_log], function(x) ifelse(x != 0, log(x), NA))
-  log.y <- unname(unlist(Obs.df[cols_to_log]))
-  
-
   non_nan_indices <- which(!is.na(log.y))
   log.yhat        <- log.yhat[non_nan_indices]
   log.y           <- log.y[non_nan_indices]
@@ -214,10 +257,11 @@ mcmc.fun <- function (pars){
                                     sd   = sqrt(sig2), 
                                     log=TRUE)))
   
-  return(log_likelihood)
+  # Guard against NaNs or Infs generated downstream
+  if (is.na(log_likelihood) || is.infinite(log_likelihood)) return(999999)
   
+  return(log_likelihood)
 }
-
 
 ## Define the Prior distributions: either normal or log normal distribution
 ## normal distribution
@@ -272,7 +316,12 @@ Prior <- function(pars) {
   log.pri.sig2   = log (prior_sig2)
   
   # maximum likelihood estimation (MLE): negative log-likelihood function, (-2 times sum of log-likelihoods)
-  MLE =  -2*sum(c(log.pri.pars, log.pri.sig , log.pri.pars.i,log.pri.sig2))  
+  #MLE =  -2*sum(c(log.pri.pars, log.pri.sig , log.pri.pars.i,log.pri.sig2))  
+  
+  
+  # ... (Keep all internal prior calculation code the same) ...
+  MLE =  -2*sum(c(log.pri.pars, log.pri.sig , log.pri.pars.i, log.pri.sig2))  
+  if (is.na(MLE) || is.infinite(MLE)) return(999999)
   
   return(MLE)
 }
@@ -301,32 +350,73 @@ tstr<-Sys.time()
 #outputlength = 500 
 
 
- niter = 600000
- burninlength  = 300000
- outputlength  = 300000
+ #niter = 600000
+ #burninlength  = 300000
+ #outputlength  = 300000
 
 
 # parallel
+#system.time(
+  #MCMC <- foreach( i = 1:4, .packages = c('mrgsolve','magrittr','FME',
+                 #                         'truncnorm','EnvStats',
+                #                          'invgamma','dplyr')) %dopar% {
+               #                             mod <- mod
+              #                              modMCMC(f             = mcmc.fun, 
+             #                                       p             = theta.MCMC, 
+            #                                        niter = niter,
+           #                                         jump          = 0.01,             ## jump function generation new parameters distribution using covrate matrix
+          #                                          prior         = Prior,            ## prior function
+         #                                           updatecov     = 100,               ## adaptive Metropolis
+        #                                            #wvar0         = 0.01,             ## "weight" for the initial model variance
+       #                                             ntrydr        = 5,                ## delayed Rejection
+      #                                              burninlength  = burninlength,    ## number of initial iterations to be removed from output.
+     #                                               outputlength  = outputlength,     ## number of output iterations  
+    #                                                verbose=1
+   #                                         )                    
+  #                                          
+ #                                         }
+#)
+
+                                      
+                                      # --- Category 2 Tuning Framework ---
+# Dynamically scale configuration based on known difficult datasets
+if (np.name %in% c("Si: Study1_20nm_10mg/kg", "Si: Study1_80nm_10mg/kg")) {
+  # Increase standard iterations for runs requiring convergence optimization
+  niter         = 1200000
+  burninlength  = 600000
+  outputlength  = 600000
+} else if (np.name %in% c("GO: Study2_243nm_1mg/kg", "GO: Study2_914nm_1mg/kg_all", "Au: Study3_27.6nm_4.26mg/kg")) {
+  # Massive iteration footprint for extremely flat surfaces
+  niter         = 2000000
+  burninlength  = 1000000
+  outputlength  = 1000000
+} else {
+  # Default footprint
+  niter         = 600000
+  burninlength  = 300000
+  outputlength  = 300000
+}
+
+# Run the parallel cluster with necessary object exports
 system.time(
-  MCMC <- foreach( i = 1:4, .packages = c('mrgsolve','magrittr','FME',
-                                          'truncnorm','EnvStats',
-                                          'invgamma','dplyr')) %dopar% {
-                                            mod <- mod
-                                            modMCMC(f             = mcmc.fun, 
-                                                    p             = theta.MCMC, 
-                                                    niter = niter,
-                                                    jump          = 0.01,             ## jump function generation new parameters distribution using covrate matrix
-                                                    prior         = Prior,            ## prior function
-                                                    updatecov     = 100,               ## adaptive Metropolis
-                                                    #wvar0         = 0.01,             ## "weight" for the initial model variance
-                                                    ntrydr        = 5,                ## delayed Rejection
-                                                    burninlength  = burninlength,    ## number of initial iterations to be removed from output.
-                                                    outputlength  = outputlength,     ## number of output iterations  
-                                                    verbose=1
-                                            )                    
-                                            
-                                          }
+  MCMC <- foreach(i = 1:4, 
+                  .packages = c('mrgsolve','magrittr','FME','truncnorm','EnvStats','invgamma','dplyr'),
+                  .export = c('mod', 'pred.mouse', 'mcmc.fun', 'Prior', 'theta.MCMC', 'which_sig', 'Obs.df', 'sig_mean_population')) %dopar% {
+                    
+                    modMCMC(f             = mcmc.fun, 
+                            p             = theta.MCMC, 
+                            niter         = niter,
+                            jump          = 0.01,             
+                            prior         = Prior,            
+                            updatecov     = 100,               
+                            ntrydr        = 5,                 
+                            burninlength  = burninlength,    
+                            outputlength  = outputlength,     
+                            verbose       = 1
+                    )                    
+                  }
 )
+                                      
 tend<-Sys.time()
 
 
