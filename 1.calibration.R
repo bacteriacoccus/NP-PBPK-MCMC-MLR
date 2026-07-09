@@ -89,12 +89,22 @@ pred.mouse.iv <- function(pars) {
   tsamp=tgrid(0,max(Obs.df$Time),tstep)     ## Simulation time 24*7 hours (180 days)
   
   ## calculate the deposition volume
-  out <- 
+ out <- tryCatch({
     mod %>% 
-    param(pars) %>%
+      param(pars) %>%
+      update(atol=1e-12, rtol=1e-8, maxsteps = 100000) %>% # Stabilized tolerances
+      mrgsim_d(data = ex.iv, tgrid=tsamp)
+  }, error = function(e) {
+    return(NULL) # If lsoda crashes, return NULL safely instead of halting R
+  })
+  
+  if (is.null(out)) return(NULL)
+  # out <- 
+  #  mod %>% 
+   # param(pars) %>%
     ##Req(Liver,M_tot,MBV)%>%d
-    update(atol=1e-50,maxsteps = 500000000) %>%
-    mrgsim_d(data = ex.iv, tgrid=tsamp)
+   # update(atol=1e-50,maxsteps = 500000000) %>%
+   # mrgsim_d(data = ex.iv, tgrid=tsamp)
   
   ## save the calculated into data frame
   out <- data.frame(Time=out$time, 
@@ -127,12 +137,22 @@ pred.mouse.oral <- function(pars) {
   tsamp=tgrid(0,max(Obs.df$Time),tstep)     ## Simulation time 24*7 hours (180 days)
   
   ## calculate the deposition volume
-  out <- 
+out <- tryCatch({
     mod %>% 
-    param(pars) %>%
+      param(pars) %>%
+      update(atol=1e-12, rtol=1e-8, maxsteps = 100000) %>% 
+      mrgsim_d(data = ex.iv, tgrid=tsamp)
+  }, error = function(e) {
+    return(NULL) # Catch lsoda failures gracefully
+  })
+  
+  if (is.null(out)) return(NULL)
+  #  out <- 
+ #   mod %>% 
+ #   param(pars) %>%
     ##Req(Liver,M_tot,MBV)%>%d
-    update(atol=1e-50,maxsteps = 500000000) %>%
-    mrgsim_d(data = ex.iv, tgrid=tsamp)
+ #   update(atol=1e-50,maxsteps = 500000000) %>%
+ #   mrgsim_d(data = ex.iv, tgrid=tsamp)
   
   ## save the calculated into data frame
   out <- data.frame(Time=out$time, 
@@ -153,6 +173,15 @@ if (pathway == "intraperitoneal injection") {
 
 MCcost<-function (pars, obs){
   out<- pred.mouse(pars)
+  
+  if (is.null(out)) {
+    bad_cost <- modCost(model=data.frame(Time=obs$Time, CL=999, CS=999, CK=999, Clung=999), 
+                        obs=obs, weight='mean', x="Time")
+    bad_cost$residuals$res <- rep(999999, length(bad_cost$residuals$res))
+    bad_cost$ssr <- 999999999
+    return(bad_cost)
+  }
+  
   cost<- modCost(model=out,obs=obs,weight='mean',x="Time")
   return(cost)
 }
@@ -264,6 +293,12 @@ combined_mod_fit_plot.a0 <- grid.arrange(plot_liver.a0, plot_kidney.a0, plot_lun
                                          ncol = 2, nrow = 2,
                                          top = "Fitted with every parameters")
 
+if (!file.exists(paste0(folder, "mod_fit/"))) {
+  dir.create(paste0(folder, "mod_fit/"), recursive = TRUE)
+}
+if (!file.exists(paste0(folder, "init_sens_v2/"))) {
+  dir.create(paste0(folder, "init_sens_v2/"), recursive = TRUE)
+}
 
 # Save the combined plot
 ggsave(paste0(folder, "mod_fit/mod_fit_combined_v1_0_p.png"), combined_mod_fit_plot.a0, width = 14, height = 10)
