@@ -20,6 +20,11 @@ library(doParallel)  # Package for parallel computing
 library(bayesplot)   # Package for MCMC traceplot
 library(gridExtra)
 
+
+source("helper_functions.R")
+source("Mouse_PBPK.R")        
+source("dataset_info.R")
+
 Obs.A1 <- read.csv(file ="dataset_1/tk/mouse/R_input_mouse_study1_13nm_short.csv")  
 
 
