@@ -268,8 +268,8 @@ MCcost<-function (pars, obs){
 
 #----------2. use all parameters as fitting----------
 
-lower_bounds <- <- ifelse(params.init == 0, -1e-5, params.init * 0.001)
-upper_bounds <- <- ifelse(params.init == 0, -1e-5, params.init * 1000)
+lower_bounds <- ifelse(params.init == 0, -1e-5, params.init * 0.001)
+upper_bounds <- ifelse(params.init == 0, -1e-5, params.init * 1000)
 
 
 Fit.Result.A0<- modFit(f=MCcost, p=params.init, obs=Obs.df, method ="Port", 
