@@ -275,23 +275,48 @@ sum(res.A0^2)
 
 Fitted_output.A0 = pred.mouse(par=Fit.Result.A0$par)
 
+#--------------------------------
+# 1. Create a dynamic list to hold plots that have valid data
+plot_list <- list()
+
+# 2. Add plots conditionally based on data presence
+plot_list$Liver  <- create_plot(Fitted_output.A0, y = "CL", organ = "Liver", title = "Liver")
+plot_list$Lung   <- create_plot(Fitted_output.A0, y = "Clung", organ = "Lung", title = "Lung")
+plot_list$Spleen <- create_plot(Fitted_output.A0, y = "CS", organ = "Spleen", title = "Spleen")
+
+# 3. Only attempt to plot Kidney if it actually contains experimental data
+if ("CK" %in= colnames(Obs.df) && sum(!is.na(Obs.df$CK)) > 2) {
+  plot_list$Kidney <- create_plot(Fitted_output.A0, y = "CK", organ = "Kidney", title = "Kidney")
+}
+
+# 4. Dynamically arrange whatever plots were generated
+num_plots <- length(plot_list)
+num_cols  <- min(2, num_plots)
+num_rows  <- ceiling(num_plots / num_cols)
+
+combined_mod_fit_plot.a0 <- do.call(gridExtra::arrangeGrob, 
+                                    c(plot_list, 
+                                      list(ncol = num_cols, 
+                                           nrow = num_rows, 
+                                           top = "Fitted with every parameters")))
 
 # Create individual plots
-plot_liver.a0   <- create_plot(Fitted_output.A0, y = "CL", organ = "Liver", title = "Liver")
-plot_kidney.a0  <- create_plot(Fitted_output.A0, y = "CK", organ = "Kidney", title = "Kidney")
-plot_lung.a0    <- create_plot(Fitted_output.A0, y = "Clung", organ = "Lung", title = "Lung")
-plot_spleen.a0  <- create_plot(Fitted_output.A0, y = "CS", organ = "Spleen", title = "Spleen")
+#plot_liver.a0   <- create_plot(Fitted_output.A0, y = "CL", organ = "Liver", title = "Liver")
+#plot_kidney.a0  <- create_plot(Fitted_output.A0, y = "CK", organ = "Kidney", title = "Kidney")
+#plot_lung.a0    <- create_plot(Fitted_output.A0, y = "Clung", organ = "Lung", title = "Lung")
+#plot_spleen.a0  <- create_plot(Fitted_output.A0, y = "CS", organ = "Spleen", title = "Spleen")
 
 # Arrange the plots together
-combined_mod_fit_plot.a0 <- grid.arrange(plot_liver.a0, plot_lung.a0, plot_spleen.a0, 
-                                         ncol = 2, nrow = 2,
-                                         top = "Fitted with every parameters")
-combined_mod_fit_plot.a0 <- grid.arrange(plot_liver.a0, plot_kidney.a0, plot_lung.a0, 
-                                         ncol = 2, nrow = 2,
-                                         top = "Fitted with every parameters")
-combined_mod_fit_plot.a0 <- grid.arrange(plot_liver.a0, plot_kidney.a0, plot_lung.a0, plot_spleen.a0, 
-                                         ncol = 2, nrow = 2,
-                                         top = "Fitted with every parameters")
+#combined_mod_fit_plot.a0 <- grid.arrange(plot_liver.a0, plot_lung.a0, plot_spleen.a0, 
+ #                                        ncol = 2, nrow = 2,
+  #                                       top = "Fitted with every parameters")
+#combined_mod_fit_plot.a0 <- grid.arrange(plot_liver.a0, plot_kidney.a0, plot_lung.a0, 
+ #                                        ncol = 2, nrow = 2,
+  #                                       top = "Fitted with every parameters")
+
+#combined_mod_fit_plot.a0 <- grid.arrange(plot_liver.a0, plot_kidney.a0, plot_lung.a0, plot_spleen.a0, 
+ #                                        ncol = 2, nrow = 2,
+  #                                       top = "Fitted with every parameters")
 
 if (!file.exists(paste0(folder, "mod_fit/"))) {
   dir.create(paste0(folder, "mod_fit/"), recursive = TRUE)
