@@ -285,7 +285,7 @@ plot_list$Lung   <- create_plot(Fitted_output.A0, y = "Clung", organ = "Lung", t
 plot_list$Spleen <- create_plot(Fitted_output.A0, y = "CS", organ = "Spleen", title = "Spleen")
 
 # 3. Only attempt to plot Kidney if it actually contains experimental data
-if ("CK" %in= colnames(Obs.df) && sum(!is.na(Obs.df$CK)) > 2) {
+if ("CK" %in% colnames(Obs.df) && sum(!is.na(Obs.df$CK)) > 2) {
   plot_list$Kidney <- create_plot(Fitted_output.A0, y = "CK", organ = "Kidney", title = "Kidney")
 }
 
