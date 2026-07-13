@@ -42,7 +42,7 @@ ls_np_name = c("Au: Study1_12nm_0.85mg/kg","Au: Study1_23nm_0.85mg/kg","Au: Stud
 
 # Instead of a hardcoded index, read the Slurm array ID
 # fallback to 3 if running locally
-current_index <- as.numeric(Sys.getenv("RUN_INDEX", unset = "3")) 
+current_index <- as.numeric(Sys.getenv("RUN_INDEX", unset = "4")) 
 
 np.name <- ls_np_name[current_index]
 #np.name= ls_np_name[2]
@@ -92,7 +92,7 @@ pred.mouse.iv <- function(pars) {
  out <- tryCatch({
     mod %>% 
       param(pars) %>%
-      update(atol=1e-12, rtol=1e-8, maxsteps = 100000) %>% # Stabilized tolerances
+      update(atol=1e-14, rtol=1e-10, maxsteps = 500000) %>% # Stabilized tolerances
       mrgsim_d(data = ex.iv, tgrid=tsamp)
   }, error = function(e) {
     return(NULL) # If lsoda crashes, return NULL safely instead of halting R
@@ -140,7 +140,7 @@ pred.mouse.oral <- function(pars) {
 out <- tryCatch({
     mod %>% 
       param(pars) %>%
-      update(atol=1e-12, rtol=1e-8, maxsteps = 100000) %>% 
+      update(atol=1e-14, rtol=1e-10, maxsteps = 500000) %>% 
       mrgsim_d(data = ex.iv, tgrid=tsamp)
   }, error = function(e) {
     return(NULL) # Catch lsoda failures gracefully
@@ -275,6 +275,11 @@ sum(res.A0^2)
 
 Fitted_output.A0 = pred.mouse(par=Fit.Result.A0$par)
 
+# --- CRITICAL PROTECTION FOR INDEX 4 ---
+if (is.null(Fitted_output.A0)) { 
+  stop("Execution halted safely: The fitted parameters caused the ODE solver to return NULL.") 
+}
+# ---------------------------------------
 #--------------------------------
 # 1. Create a dynamic list to hold plots that have valid data
 plot_list <- list()
