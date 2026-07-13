@@ -267,7 +267,14 @@ MCcost<-function (pars, obs){
 
 
 #----------2. use all parameters as fitting----------
+
+lower_bounds <- params.init * 0.01  
+upper_bounds <- params.init * 100
+
+
 Fit.Result.A0<- modFit(f=MCcost, p=params.init, obs=Obs.df, method ="Port", 
+                       lower = lower_bounds,
+                       upper = upper_bounds,
                        control = nls.lm.control(nprint=1)) #"Nelder-Mead"
 
 res.A0=MCcost(Fit.Result.A0$par, obs=Obs.df)$residuals$res     ## Check the residual for each time points
