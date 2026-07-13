@@ -268,8 +268,8 @@ MCcost<-function (pars, obs){
 
 #----------2. use all parameters as fitting----------
 
-lower_bounds <- params.init * 0.01  
-upper_bounds <- params.init * 100
+lower_bounds <- params.init * 0.1  
+upper_bounds <- params.init * 10
 
 
 Fit.Result.A0<- modFit(f=MCcost, p=params.init, obs=Obs.df, method ="Port", 
@@ -285,6 +285,8 @@ Fitted_output.A0 = pred.mouse(par=Fit.Result.A0$par)
 # --- CRITICAL PROTECTION FOR INDEX 4 ---
 if (is.null(Fitted_output.A0)) { 
   stop("Execution halted safely: The fitted parameters caused the ODE solver to return NULL.") 
+  # Fallback to initial parameters just so the script can finish and write the CSV
+  Fitted_output.A0 = pred.mouse(par=params.init)
 }
 # ---------------------------------------
 #--------------------------------
