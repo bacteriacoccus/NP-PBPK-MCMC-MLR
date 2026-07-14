@@ -380,21 +380,21 @@ tstr<-Sys.time()
                                       
                                       # --- Category 2 Tuning Framework ---
 # Dynamically scale configuration based on known difficult datasets
-if (np.name %in% c("Si: Study1_20nm_10mg/kg", "Si: Study1_80nm_10mg/kg")) {
+if (np.name %in% c("Si: Study1_20nm_10mg/kg", "Si: Study1_80nm_10mg/kg", "Au: Study1_100nm_0.85mg/kg", "GO: Study2_914nm_1mg/kg_all")) {
   # Increase standard iterations for runs requiring convergence optimization
-  niter         = 1200000
-  burninlength  = 600000
-  outputlength  = 600000
-} else if (np.name %in% c("GO: Study2_243nm_1mg/kg", "GO: Study2_914nm_1mg/kg_all", "Au: Study3_27.6nm_4.26mg/kg")) {
+  niter         = 4000000
+  burninlength  = 2000000
+  outputlength  = 2000000
+} else if (np.name %in% c("GO: Study2_243nm_1mg/kg", "Au: Study3_27.6nm_4.26mg/kg", "Au: Study2_34.6nm_3mg/kg", "TiO2: Study2_220nm_60mg/kg")) {
   # Massive iteration footprint for extremely flat surfaces
-  niter         = 2000000
-  burninlength  = 1000000
-  outputlength  = 1000000
+  niter         = 6000000
+  burninlength  = 3000000
+  outputlength  = 3000000
 } else {
   # Default footprint
-  niter         = 600000
-  burninlength  = 300000
-  outputlength  = 300000
+  niter         = 1000000
+  burninlength  = 500000
+  outputlength  = 500000
 }
 
 # Run the parallel cluster with necessary object exports
