@@ -380,7 +380,7 @@ tstr<-Sys.time()
                                       
                                       # --- Category 2 Tuning Framework ---
 # Dynamically scale configuration based on known difficult datasets
-if (np.name %in% c("Si: Study1_20nm_10mg/kg", "Si: Study1_80nm_10mg/kg", "Au: Study1_100nm_0.85mg/kg", "GO: Study2_914nm_1mg/kg_all")) {
+if (np.name %in% c("Si: Study1_80nm_10mg/kg", "Au: Study1_100nm_0.85mg/kg", "GO: Study2_914nm_1mg/kg_all")) {
   # Increase standard iterations for runs requiring convergence optimization
   niter         = 4000000
   burninlength  = 2000000
