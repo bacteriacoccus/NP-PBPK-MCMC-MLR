@@ -2,7 +2,8 @@ ls_np_name = c("Au: Study1_12nm_0.85mg/kg","Au: Study1_23nm_0.85mg/kg","Au: Stud
                "Au: Study2_34.6nm_3mg/kg","Au: Study2_55.5nm_3mg/kg","Au: Study2_77.1nm_3mg/kg",
                "Au: Study2_82.6nm_3mg/kg","Au: Study3_27.6nm_4.26mg/kg","Au: Study3_27.6nm_0.85mg/kg",
                "Si: Study1_20nm_10mg/kg","Si: Study1_80nm_10mg/kg","GO: Study1_20nm_20mg/kg",
-               "GO: Study2_243nm_1mg/kg", "GO: Study2_914nm_1mg/kg_all","GO: Study2_914nm_1mg/kg_w/o_CS",
+               "GO: Study2_243nm_1mg/kg", "GO: Study2_914nm_1mg/kg_all","GO: Study2_914nm_1mg/kg_w/o_CS", 
+               "NGO: Study3_NGO_5mg/kg", "NGO: Study3_NGO_PEG_5mg/kg",
                "TiO2: Study1_385nm_10mg/kg","TiO2: Study2_220nm_60mg/kg",
                "FeO: Study1_29nm_5mg/kg","FeO: Study2_41nm_4mg/kg")
 
@@ -150,6 +151,24 @@ read_observation_data <- function(np_name) {
     
     Obs.df$Time[3] = 10/60
   } 
+  else if (np_name == "NGO: Study3_NGO_5mg/kg") {
+    #------------------ NGO (Pristine) -------------------------
+    Obs.df <- read.csv(file = "dataset\tk\mouse\NGO\Study1_125I-NGO_308.4nm.csv")
+    Obs.df <- Obs.df[1:5,]
+    PDOSE <- Obs.df$Dose.mg.kg.[1]
+    pathway <- Obs.df$Input.pathway[1]
+    Obs.df <- Obs.df[c("Time","CL","CS","CK","Clung")]
+    folder <- 'plots/NGO/S3_NGO/'
+  }
+  else if (np_name == "NGO: Study3_NGO_PEG_5mg/kg") {
+    #------------------ NGO-PEG: Study1:  (PEGylated) --------------------
+    Obs.df <- read.csv(file = "dataset\tk\mouse\NGO\Study1_125I-NGO-PEG_308.4nm.csv")
+    Obs.df <- Obs.df[1:5,]
+    PDOSE <- Obs.df$Dose.mg.kg.[1]
+    pathway <- Obs.df$Input.pathway[1]
+    Obs.df <- Obs.df[c("Time","CL","CS","Clung")] # Kidney (CK) absent in Fig 3A bar chart
+    folder <- 'plots/NGO/S3_NGO_PEG/'
+  }
   else if (np_name == "TiO2: Study1_385nm_10mg/kg") {
     #------------------TiO2: Study1: 385 nm-------------------------
     Obs.df <- read.csv(file ="dataset/tk/mouse/TiO2/Study1-TiO2.csv") 
