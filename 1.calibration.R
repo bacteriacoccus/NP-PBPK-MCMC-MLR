@@ -38,7 +38,8 @@ ls_np_name = c("Au: Study1_12nm_0.85mg/kg","Au: Study1_23nm_0.85mg/kg","Au: Stud
                "Si: Study1_20nm_10mg/kg","Si: Study1_80nm_10mg/kg","GO: Study1_20nm_20mg/kg",
                "GO: Study2_243nm_1mg/kg", "GO: Study2_914nm_1mg/kg_all","GO: Study2_914nm_1mg/kg_w/o_CS",
                "TiO2: Study1_385nm_10mg/kg","TiO2: Study2_220nm_60mg/kg",
-               "FeO: Study1_29nm_5mg/kg","FeO: Study2_41nm_4mg/kg")
+               "FeO: Study1_29nm_5mg/kg","FeO: Study2_41nm_4mg/kg",
+               "NGO: Study3_NGO_5mg/kg", "NGO: Study3_NGO_PEG_5mg/kg")
 
 # Instead of a hardcoded index, read the Slurm array ID
 # fallback to 3 if running locally
