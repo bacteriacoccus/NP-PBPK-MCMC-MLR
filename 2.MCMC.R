@@ -292,7 +292,7 @@ Prior <- function(pars) {
   
   # Calculate likelihoods of model error (sig2) and population variance (sig) parameters
   
-  sig  <- as.numeric (exp(pars[which_sig][-1]))   # Coefficient of variation from population variance; sigmal0   # Coefficient of variation from population variance; sigmal0
+  sig  <- as.numeric (exp(pars[which_sig][2:length(pars.data [which_sig])]))   # Coefficient of variation from population variance; sigmal0
   prior_sig      = dinvgamma (sig, shape = alpha, scale = beta)  # prior distribution for population variance; sigma2
   
   
@@ -384,13 +384,13 @@ tstr<-Sys.time()
 if (np.name %in% c("Si: Study1_80nm_10mg/kg", "Au: Study1_100nm_0.85mg/kg", "GO: Study2_914nm_1mg/kg_all")) {
   # Increase standard iterations for runs requiring convergence optimization
   niter         = 1000000
-  burninlength  = 2000000
-  outputlength  = 2000000
+  burninlength  = 5000000
+  outputlength  = 5000000
 } else if (np.name %in% c("GO: Study2_243nm_1mg/kg", "Au: Study3_27.6nm_4.26mg/kg", "Au: Study2_34.6nm_3mg/kg", "TiO2: Study2_220nm_60mg/kg")) {
   # Massive iteration footprint for extremely flat surfaces
-  niter         = 6000000
-  burninlength  = 3000000
-  outputlength  = 3000000
+  niter         = 8000000
+  burninlength  = 4000000
+  outputlength  = 4000000
 } else {
   # Default footprint
   niter         = 1000000
@@ -398,7 +398,6 @@ if (np.name %in% c("Si: Study1_80nm_10mg/kg", "Au: Study1_100nm_0.85mg/kg", "GO:
   outputlength  = 500000
 }
 
-thin <- 10                                      
 # Run the parallel cluster with necessary object exports
 system.time(
   MCMC <- foreach(i = 1:4, 
@@ -413,8 +412,8 @@ system.time(
                             updatecov     = 100,               
                             ntrydr        = 5,                 
                             burninlength  = burninlength,    
-                            outputlength  = outputlength,    
-                            thin          = thin,
+                            outputlength  = outputlength,  
+                            thin          = 10,
                             verbose       = 1
                     )                    
                   }
