@@ -292,7 +292,7 @@ Prior <- function(pars) {
   
   # Calculate likelihoods of model error (sig2) and population variance (sig) parameters
   
-  sig  <- as.numeric (exp(pars[which_sig][2:length(pars.data [which_sig])]))   # Coefficient of variation from population variance; sigmal0
+  sig  <- as.numeric (exp(pars[which_sig][2:length(pars[which_sig])]))   # Coefficient of variation from population variance; sigmal0
   prior_sig      = dinvgamma (sig, shape = alpha, scale = beta)  # prior distribution for population variance; sigma2
   
   
