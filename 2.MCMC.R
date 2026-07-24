@@ -409,11 +409,11 @@ system.time(
                             niter         = niter,
                             jump          = 0.01,             
                             prior         = Prior,            
-                            updatecov     = 100,               
+                            updatecov     = 50,               
                             ntrydr        = 5,                 
                             burninlength  = burninlength,    
                             outputlength  = outputlength,
-                            thin          = 20,
+                            thin          = 10,
                             verbose       = 1
                     )                    
                   }
