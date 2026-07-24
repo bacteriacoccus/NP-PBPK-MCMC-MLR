@@ -224,7 +224,7 @@ mcmc.fun <- function (pars){
   # Protect the ODE solver from stiff/death-zone combinations
   out <- tryCatch({
     # Increase maxsteps and slightly tighten tolerances to minimize lsoda crashing
-    mrgsim(mod, param = pars[-which_sig], maxsteps = 80000, atol = 1e-8, rtol = 1e-6) 
+    mrgsim(mod, param = pars[-which_sig], maxsteps = 10000, atol = 1e-8, rtol = 1e-6) 
     pred.mouse(pars[-which_sig])
   }, error = function(e) {
     return(NULL) 
@@ -383,9 +383,9 @@ tstr<-Sys.time()
 # Dynamically scale configuration based on known difficult datasets
 if (np.name %in% c("Si: Study1_80nm_10mg/kg", "Au: Study1_100nm_0.85mg/kg", "GO: Study2_914nm_1mg/kg_all")) {
   # Increase standard iterations for runs requiring convergence optimization
-  niter         = 4000000
-  burninlength  = 2000000
-  outputlength  = 2000000
+  niter         = 1000000
+  burninlength  = 500000
+  outputlength  = 500000
 } else if (np.name %in% c("GO: Study2_243nm_1mg/kg", "Au: Study3_27.6nm_4.26mg/kg", "Au: Study2_34.6nm_3mg/kg", "TiO2: Study2_220nm_60mg/kg")) {
   # Massive iteration footprint for extremely flat surfaces
   niter         = 6000000
@@ -412,7 +412,8 @@ system.time(
                             updatecov     = 100,               
                             ntrydr        = 5,                 
                             burninlength  = burninlength,    
-                            outputlength  = outputlength,     
+                            outputlength  = outputlength,
+                            thin          = 10,
                             verbose       = 1
                     )                    
                   }
