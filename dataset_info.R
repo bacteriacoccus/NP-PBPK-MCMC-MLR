@@ -153,7 +153,7 @@ read_observation_data <- function(np_name) {
   } 
   else if (np_name == "NGO: Study3_NGO_5mg/kg") {
     #------------------ NGO (Pristine) -------------------------
-    Obs.df <- read.csv(file = "dataset\tk\mouse\NGO\Study1_125I-NGO_308.4nm.csv")
+    Obs.df <- read.csv(file = "dataset/tk/mouse/NGO/Study1_125I-NGO_308.4nm.csv")
     Obs.df <- Obs.df[1:5,]
     PDOSE <- Obs.df$Dose.mg.kg.[1]
     pathway <- Obs.df$Input.pathway[1]
@@ -162,7 +162,7 @@ read_observation_data <- function(np_name) {
   }
   else if (np_name == "NGO: Study3_NGO_PEG_5mg/kg") {
     #------------------ NGO-PEG: Study1:  (PEGylated) --------------------
-    Obs.df <- read.csv(file = "dataset\tk\mouse\NGO\Study1_125I-NGO-PEG_308.4nm.csv")
+    Obs.df <- read.csv(file = "dataset/tk/mouse/NGO/Study1_125I-NGO-PEG_308.4nm.csv")
     Obs.df <- Obs.df[1:5,]
     PDOSE <- Obs.df$Dose.mg.kg.[1]
     pathway <- Obs.df$Input.pathway[1]
