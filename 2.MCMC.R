@@ -224,7 +224,7 @@ mcmc.fun <- function (pars){
   # Protect the ODE solver from stiff/death-zone combinations
   out <- tryCatch({
     # Increase maxsteps and slightly tighten tolerances to minimize lsoda crashing
-    mrgsim(mod, param = pars[-which_sig], maxsteps = 10000, atol = 1e-8, rtol = 1e-6) 
+    mrgsim(mod, param = pars[-which_sig], maxsteps = 80000, atol = 1e-8, rtol = 1e-6) 
     pred.mouse(pars[-which_sig])
   }, error = function(e) {
     return(NULL) 
@@ -292,7 +292,7 @@ Prior <- function(pars) {
   
   # Calculate likelihoods of model error (sig2) and population variance (sig) parameters
   
- sig <- as.numeric(exp(pars[which_sig][-1]))   # Coefficient of variation from population variance; sigmal0
+  sig  <- as.numeric (exp(pars[which_sig][2:length(pars.data [which_sig])]))   # Coefficient of variation from population variance; sigmal0
   prior_sig      = dinvgamma (sig, shape = alpha, scale = beta)  # prior distribution for population variance; sigma2
   
   
@@ -383,14 +383,14 @@ tstr<-Sys.time()
 # Dynamically scale configuration based on known difficult datasets
 if (np.name %in% c("Si: Study1_80nm_10mg/kg", "Au: Study1_100nm_0.85mg/kg", "GO: Study2_914nm_1mg/kg_all")) {
   # Increase standard iterations for runs requiring convergence optimization
-  niter         = 1000000
-  burninlength  = 500000
-  outputlength  = 500000
+  niter         = 4000000
+  burninlength  = 2000000
+  outputlength  = 2000000
 } else if (np.name %in% c("GO: Study2_243nm_1mg/kg", "Au: Study3_27.6nm_4.26mg/kg", "Au: Study2_34.6nm_3mg/kg", "TiO2: Study2_220nm_60mg/kg")) {
   # Massive iteration footprint for extremely flat surfaces
-  niter         = 8000000
-  burninlength  = 4000000
-  outputlength  = 4000000
+  niter         = 6000000
+  burninlength  = 3000000
+  outputlength  = 3000000
 } else {
   # Default footprint
   niter         = 1000000
@@ -409,11 +409,10 @@ system.time(
                             niter         = niter,
                             jump          = 0.01,             
                             prior         = Prior,            
-                            updatecov     = 50,               
+                            updatecov     = 100,               
                             ntrydr        = 5,                 
                             burninlength  = burninlength,    
-                            outputlength  = outputlength,
-                            thin          = 10,
+                            outputlength  = outputlength,     
                             verbose       = 1
                     )                    
                   }
@@ -450,5 +449,4 @@ if (!file.exists(paste0(folder,"MCMC/"))) {
 write.csv(MC.mouse.1,file=paste0(folder,"MCMC/mouse.chain1.csv"))
 saveRDS(MCMC,file =paste0(folder,'MCMC/mouse.MCMC.rds'))
 saveRDS(combinedchains,file=paste0(folder,'MCMC/mouse.MCMC.comb.rds'))
-
 
