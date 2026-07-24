@@ -388,9 +388,9 @@ if (np.name %in% c("Si: Study1_80nm_10mg/kg", "Au: Study1_100nm_0.85mg/kg", "GO:
   outputlength  = 500000
 } else if (np.name %in% c("GO: Study2_243nm_1mg/kg", "Au: Study3_27.6nm_4.26mg/kg", "Au: Study2_34.6nm_3mg/kg", "TiO2: Study2_220nm_60mg/kg")) {
   # Massive iteration footprint for extremely flat surfaces
-  niter         = 6000000
-  burninlength  = 3000000
-  outputlength  = 3000000
+  niter         = 8000000
+  burninlength  = 4000000
+  outputlength  = 4000000
 } else {
   # Default footprint
   niter         = 1000000
@@ -413,7 +413,7 @@ system.time(
                             ntrydr        = 5,                 
                             burninlength  = burninlength,    
                             outputlength  = outputlength,
-                            thin          = 10,
+                            thin          = 20,
                             verbose       = 1
                     )                    
                   }
