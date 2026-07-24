@@ -413,7 +413,7 @@ system.time(
                             ntrydr        = 5,                 
                             burninlength  = burninlength,    
                             outputlength  = outputlength,
-                            thin          = 10,
+                            thin          = 20,
                             verbose       = 1
                     )                    
                   }
